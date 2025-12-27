@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ vars.PY_VERSION }}
 
@@ -28,7 +26,7 @@ jobs:
 
       - name: Installer dépendances
         run: |
-          python -m pip install --upgrade pip
+          pip install -U pip
           pip install dvc pandas numpy scikit-learn joblib
 
       - name: Restaurer cache DVC
@@ -58,7 +56,7 @@ jobs:
           f1 = float(metrics.get("f1", 0.0))
           print(f"F1={f1} | seuil={threshold}")
           if f1 < threshold:
-              raise SystemExit(" Quality Gate échoué : F1 insuffisante")
+              raise SystemExit("Quality Gate échoué : F1 insuffisante")
           print("Quality Gate validé")
           EOF
 
@@ -77,8 +75,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Télécharger artefacts validés
         uses: actions/download-artifact@v4
