@@ -1,19 +1,15 @@
 from pathlib import Path
 from typing import Final
 
-
 import numpy as np
 import pandas as pd
-
 
 """
 Module de génération d'un dataset synthétique de churn client.
 
-
 Ce script génère un fichier CSV `data/raw.csv` contenant des données
 synthétiques d'abonnement (tenure, plaintes, usage, etc.) et une variable
 binaire `churn` indiquant si le client quitte le service.
-
 
 Il est pensé comme point de départ pour un lab MLOps :
 - jeu de données contrôlé et reproductible ;
@@ -21,38 +17,30 @@ Il est pensé comme point de départ pour un lab MLOps :
 - génération déterministe grâce à une graine pseudo-aléatoire.
 """
 
-
 # ---------------------------------------------------------------------------
 # Constantes de chemin
 # ---------------------------------------------------------------------------
-
 
 ROOT: Final[Path] = Path(__file__).resolve().parents[1]
 DATA_DIR: Final[Path] = ROOT / "data"
 RAW_PATH: Final[Path] = DATA_DIR / "raw.csv"
 
 
-
 # ---------------------------------------------------------------------------
 # Fonctions utilitaires
 # ---------------------------------------------------------------------------
-
-
 
 def sigmoid(x: np.ndarray) -> np.ndarray:
     """
     Calcule la fonction sigmoïde de manière vectorisée.
 
-
     La sigmoïde permet de transformer une valeur réelle (logit) en probabilité
     comprise entre 0 et 1.
-
 
     Paramètres
     ----------
     x : np.ndarray
         Tableau de valeurs réelles (logits).
-
 
     Retour
     ------
@@ -62,11 +50,9 @@ def sigmoid(x: np.ndarray) -> np.ndarray:
     return 1.0 / (1.0 + np.exp(-x))
 
 
-
 def generate_churn_dataset(n: int, seed: int = 42) -> pd.DataFrame:
     """
     Génère un dataset synthétique de churn client.
-
 
     La génération repose sur un modèle logistique simple :
     - plus le nombre de plaintes augmente, plus la probabilité de churn monte ;
@@ -75,14 +61,12 @@ def generate_churn_dataset(n: int, seed: int = 42) -> pd.DataFrame:
     - les clients premium ont un churn plus faible que les clients basic ;
     - l'effet de la région est modélisé comme des ajustements du logit.
 
-
     Paramètres
     ----------
     n : int
         Nombre de lignes (clients) à générer.
     seed : int, optionnel
         Graine pour le générateur pseudo-aléatoire (reproductibilité).
-
 
     Retour
     ------
@@ -97,13 +81,11 @@ def generate_churn_dataset(n: int, seed: int = 42) -> pd.DataFrame:
     """
     rng = np.random.default_rng(seed)
 
-
     # Variables explicatives numériques
     tenure_months = rng.integers(low=1, high=60, size=n)
     num_complaints = rng.poisson(lam=1.2, size=n)
     avg_session_minutes = rng.normal(loc=35, scale=12, size=n)
     avg_session_minutes = np.clip(avg_session_minutes, 1, 120)
-
 
     # Variables explicatives catégorielles
     plan_type = rng.choice(
@@ -117,7 +99,6 @@ def generate_churn_dataset(n: int, seed: int = 42) -> pd.DataFrame:
         p=[0.25, 0.30, 0.25, 0.20],
     )
 
-
     # Modèle logistique : combinaison linéaire des features
     base_logit = (
         1.2
@@ -127,19 +108,15 @@ def generate_churn_dataset(n: int, seed: int = 42) -> pd.DataFrame:
         + np.where(plan_type == "premium", -0.35, 0.0)
     )
 
-
     # Effet de la région sur le logit (ajustements additifs)
     base_logit += np.where(region == "EU", -0.05, 0.0)
     base_logit += np.where(region == "AF", 0.08, 0.0)
 
-
     # Passage en probabilité via la sigmoïde
     churn_proba = sigmoid(base_logit)
 
-
     # Échantillonnage de la variable binaire churn (0/1)
     churn = rng.binomial(n=1, p=churn_proba, size=n)
-
 
     df = pd.DataFrame(
         {
@@ -152,21 +129,16 @@ def generate_churn_dataset(n: int, seed: int = 42) -> pd.DataFrame:
         }
     )
 
-
     return df
-
 
 
 # ---------------------------------------------------------------------------
 # Point d'entrée script
 # ---------------------------------------------------------------------------
 
-
-
 def main(n: int = 1200, seed: int = 42) -> None:
     """
     Point d'entrée pour générer et sauvegarder le dataset sur disque.
-
 
     Paramètres
     ----------
@@ -176,7 +148,6 @@ def main(n: int = 1200, seed: int = 42) -> None:
         Graine pseudo-aléatoire pour rendre la génération reproductible.
         Défaut : 42.
 
-
     Effets de bord
     --------------
     - Crée le dossier `data/` s'il n'existe pas.
@@ -185,10 +156,8 @@ def main(n: int = 1200, seed: int = 42) -> None:
     """
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-
     df = generate_churn_dataset(n=n, seed=seed)
     df.to_csv(RAW_PATH, index=False)
-
 
     print(
         f"[OK] Dataset généré : {RAW_PATH} "
@@ -196,6 +165,5 @@ def main(n: int = 1200, seed: int = 42) -> None:
     )
 
 
-
 if __name__ == "__main__":
-    main()"# comment v2" 
+    main()  # comment v2
