@@ -1,6 +1,0 @@
-venv_mlops/
-__pycache__/
-*.pyc
-logs/
-models/
-data/
